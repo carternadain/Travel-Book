@@ -1,3 +1,5 @@
+import { MORE_DESTINATIONS } from "./more-destinations";
+
 // Curated trip data. Live info (photos, summaries, weather, exchange rates) is
 // fetched at runtime from free public APIs — see lib/live.ts. Ticket prices below
 // were researched on the web in October 2026; each one carries its source so you
@@ -18,6 +20,7 @@ export const INTERESTS: { id: Interest; label: string }[] = [
 export type Ticket = {
   label: string;
   amount: number; // in `currency`
+  perDay?: boolean; // multiply by trip length (e.g. a daily park pass)
   currency: string;
   source: string; // URL
   note?: string;
@@ -30,13 +33,16 @@ export type Place = {
   photo?: string; // hand-picked Wikimedia Commons file (free licence); falls back to the Wikipedia lead image
   lat: number;
   lng: number;
-  kind: "wonder" | "gem";
+  kind: "wonder" | "icon" | "gem"; // wonder = New 7 Wonders, icon = other bucket-list sight
   days: number; // how much of a day it takes (0.5 or 1)
   tags: Interest[];
   blurb: string;
   tip?: string;
   tickets?: Ticket[];
 };
+
+export const CONTINENTS = ["Americas", "Europe", "Asia", "Africa & Middle East", "Oceania"] as const;
+export type Continent = (typeof CONTINENTS)[number];
 
 export type Destination = {
   id: string;
@@ -49,6 +55,8 @@ export type Destination = {
   airportLat: number;
   airportLng: number;
   base: { name: string; lat: number; lng: number; wiki: string };
+  continent: Continent;
+  offbeat?: boolean; // a whole trip of hidden gems
   wonder?: string; // id of the wonder, if this trip has one
   places: Place[];
   bestMonths: number[]; // 1-12
@@ -70,6 +78,7 @@ export const WONDER_IDS = [
 export const DESTINATIONS: Destination[] = [
   {
     id: "beijing",
+    continent: "Asia",
     name: "The Great Wall",
     region: "Beijing & the wild wall",
     country: "China",
@@ -143,6 +152,7 @@ export const DESTINATIONS: Destination[] = [
   },
   {
     id: "jordan",
+    continent: "Africa & Middle East",
     name: "Petra",
     region: "Petra & the Jordanian desert",
     country: "Jordan",
@@ -215,6 +225,7 @@ export const DESTINATIONS: Destination[] = [
   },
   {
     id: "rio",
+    continent: "Americas",
     name: "Christ the Redeemer",
     region: "Rio de Janeiro & the green coast",
     country: "Brazil",
@@ -286,6 +297,7 @@ export const DESTINATIONS: Destination[] = [
   },
   {
     id: "cusco",
+    continent: "Americas",
     name: "Machu Picchu",
     region: "Cusco & the Sacred Valley",
     country: "Peru",
@@ -370,6 +382,7 @@ export const DESTINATIONS: Destination[] = [
   },
   {
     id: "yucatan",
+    continent: "Americas",
     name: "Chichén Itzá",
     region: "The Yucatán & its cenotes",
     country: "Mexico",
@@ -452,6 +465,7 @@ export const DESTINATIONS: Destination[] = [
   },
   {
     id: "rome",
+    continent: "Europe",
     name: "The Colosseum",
     region: "Rome & hill towns",
     country: "Italy",
@@ -534,6 +548,7 @@ export const DESTINATIONS: Destination[] = [
   },
   {
     id: "agra",
+    continent: "Asia",
     name: "The Taj Mahal",
     region: "Agra & Rajasthan's edge",
     country: "India",
@@ -617,6 +632,7 @@ export const DESTINATIONS: Destination[] = [
   },
   {
     id: "cairo",
+    continent: "Africa & Middle East",
     name: "The Pyramids of Giza",
     region: "Cairo & the necropolis",
     country: "Egypt",
@@ -641,7 +657,7 @@ export const DESTINATIONS: Destination[] = [
         photo: "All Gizah Pyramids.jpg",
         lat: 29.9792,
         lng: 31.1342,
-        kind: "gem",
+        kind: "icon",
         days: 1,
         tags: ["history", "photo"],
         blurb: "The Great Pyramid and the Sphinx. Honorary eighth on your wonders list.",
@@ -686,6 +702,8 @@ export const DESTINATIONS: Destination[] = [
   },
   {
     id: "oaxaca",
+    continent: "Americas",
+    offbeat: true,
     name: "Oaxaca",
     region: "Oaxaca's valleys",
     country: "Mexico",
@@ -741,6 +759,8 @@ export const DESTINATIONS: Destination[] = [
   },
   {
     id: "georgia",
+    continent: "Asia",
+    offbeat: true,
     name: "Georgia",
     region: "Tbilisi & the Caucasus",
     country: "Georgia",
@@ -795,6 +815,8 @@ export const DESTINATIONS: Destination[] = [
   },
   {
     id: "slovenia",
+    continent: "Europe",
+    offbeat: true,
     name: "Slovenia",
     region: "Ljubljana, Bled & the Soča",
     country: "Slovenia",
@@ -850,6 +872,8 @@ export const DESTINATIONS: Destination[] = [
   },
   {
     id: "laos",
+    continent: "Asia",
+    offbeat: true,
     name: "Luang Prabang",
     region: "Northern Laos",
     country: "Laos",
@@ -905,9 +929,23 @@ export const DESTINATIONS: Destination[] = [
   },
 ];
 
+DESTINATIONS.push(...MORE_DESTINATIONS);
+
 export const ALL_PLACES: (Place & { destId: string })[] = DESTINATIONS.flatMap((d) =>
   d.places.map((p) => ({ ...p, destId: d.id })),
 );
+
+/** True when a trip has bucket-list sights and you've seen all of them. */
+export function tripSeen(d: Destination, seen: Set<string | undefined>) {
+  const icons = d.places.filter((p) => p.kind !== "gem");
+  return icons.length > 0 && icons.every((p) => seen.has(p.id));
+}
+
+/** The bucket list: the New 7 Wonders plus the other must-see icons. */
+export const BUCKET = ALL_PLACES.filter((p) => p.kind === "wonder" || p.kind === "icon").map((p) => ({
+  ...p,
+  dest: DESTINATIONS.find((d) => d.id === p.destId)!,
+}));
 
 export const WONDERS = WONDER_IDS.map((id) => {
   const p = ALL_PLACES.find((x) => x.id === id)!;

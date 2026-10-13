@@ -74,7 +74,7 @@ export function PhotoCard({
 }
 
 export function DestinationCard({ d, seen }: { d: Destination; seen?: boolean }) {
-  const hero = d.places.find((p) => p.id === d.wonder) ?? d.places[0];
+  const hero = d.places[0];
   return (
     <PhotoCard
       href={`/plan?dest=${d.id}`}

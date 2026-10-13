@@ -1,13 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "motion/react";
 import { ArrowRight, BookHeart, Shuffle } from "lucide-react";
 import { Globe, type GlobeArc, type GlobePoint } from "@/components/Globe";
 import { DestinationCard, GemCard } from "@/components/Cards";
 import { AnimatedNumber, EASE, Eyebrow, Reveal, rise, stagger } from "@/components/ui";
-import { DESTINATIONS, HOME_AIRPORTS, WONDERS } from "@/lib/data";
+import { BUCKET, DESTINATIONS, HOME_AIRPORTS, WONDERS, tripSeen } from "@/lib/data";
+import { DRIVE_MILES, MONTHS, MONTHS_LONG, miles } from "@/lib/planner";
+import { Chip } from "@/components/ui";
 import { selectMemories, selectSettings, useStore } from "@/lib/store";
 
 const GOLD: [number, number, number] = [0.95, 0.68, 0.2];
@@ -21,11 +23,16 @@ export default function Discover() {
   const seenIds = new Set(memories.map((m) => m.placeId).filter(Boolean));
   const wondersSeen = WONDERS.filter((w) => seenIds.has(w.id)).length;
   const countries = new Set(memories.map((m) => m.countryCode)).size;
+  const bucketSeen = BUCKET.filter((b) => seenIds.has(b.id)).length;
+  const [month, setMonth] = useState<number | null>(null);
+  useEffect(() => setMonth(((new Date().getMonth() + 2) % 12) + 1), []);
+  const inSeason = month ? DESTINATIONS.filter((d) => d.bestMonths.includes(month)) : [];
+  const drives = DESTINATIONS.filter((d) => miles(home.lat, home.lng, d.airportLat, d.airportLng) < DRIVE_MILES);
 
   const points = useMemo<GlobePoint[]>(
     () => [
-      ...WONDERS.map((w) => ({ lat: w.lat, lng: w.lng, size: 0.07, color: GOLD })),
-      ...DESTINATIONS.filter((d) => !d.wonder).map((d) => ({ lat: d.base.lat, lng: d.base.lng, size: 0.045, color: SEA })),
+      ...BUCKET.map((b) => ({ lat: b.lat, lng: b.lng, size: b.kind === "wonder" ? 0.07 : 0.05, color: GOLD })),
+      ...DESTINATIONS.filter((d) => d.offbeat).map((d) => ({ lat: d.base.lat, lng: d.base.lng, size: 0.045, color: SEA })),
       ...memories.map((m) => ({ lat: m.lat, lng: m.lng, size: 0.06, color: ACCENT })),
     ],
     [memories],
@@ -37,7 +44,7 @@ export default function Discover() {
 
   const gems = DESTINATIONS.flatMap((d) => d.places.filter((p) => p.kind === "gem").map((p) => ({ p, d })));
   const picks = [0, 5, 9, 14, 21, 27].map((i) => gems[i % gems.length]);
-  const offMap = DESTINATIONS.filter((d) => !d.wonder);
+  const offMap = DESTINATIONS.filter((d) => d.offbeat);
 
   return (
     <div className="space-y-20 md:space-y-28">
@@ -81,7 +88,7 @@ export default function Discover() {
             </motion.div>
             <motion.dl variants={rise} className="mt-10 grid max-w-md grid-cols-3 gap-3">
               {[
-                { k: "Wonders seen", v: wondersSeen, of: "/7" },
+                { k: "Bucket list", v: bucketSeen, of: `/${BUCKET.length}` },
                 { k: "Countries", v: countries, of: "" },
                 { k: "Memories", v: memories.length, of: "" },
               ].map((s) => (
@@ -105,11 +112,11 @@ export default function Discover() {
             <Globe
               points={points}
               arcs={arcs}
-              label={`Globe showing the 7 wonders and the ${memories.length} places you've been`}
+              label={`Globe showing ${BUCKET.length} bucket-list places and the ${memories.length} places you've been`}
             />
             <ul className="-mt-4 flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs text-dim">
               <li className="flex items-center gap-1.5">
-                <span className="h-2.5 w-2.5 rounded-full bg-gold" aria-hidden /> Wonders
+                <span className="h-2.5 w-2.5 rounded-full bg-marker-gold" aria-hidden /> Bucket list
               </li>
               <li className="flex items-center gap-1.5">
                 <span className="h-2.5 w-2.5 rounded-full bg-accent" aria-hidden /> Where you&apos;ve been
@@ -152,6 +159,72 @@ export default function Discover() {
           ))}
         </motion.div>
       </section>
+
+      {/* Where to go this month */}
+      <section>
+        <Reveal className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <Eyebrow>Perfect timing</Eyebrow>
+            <h2 className="font-display mt-2 text-4xl md:text-5xl">
+              Where to go in <em className="text-accent-ink">{month ? MONTHS_LONG[month - 1] : "…"}</em>
+            </h2>
+          </div>
+          <Link
+            href="/bucket"
+            className="group hidden min-h-10 items-center gap-1 text-sm font-semibold text-accent-ink sm:inline-flex"
+          >
+            See all {BUCKET.length} <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
+          </Link>
+        </Reveal>
+        <div className="no-scrollbar -mx-4 mt-5 flex gap-1.5 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:px-6" role="group" aria-label="Month">
+          {MONTHS.map((m, i) => (
+            <Chip key={m} on={month === i + 1} onClick={() => setMonth(i + 1)} className="shrink-0 !px-3.5">
+              {m}
+            </Chip>
+          ))}
+        </div>
+        <motion.div
+          key={month ?? 0}
+          variants={stagger}
+          initial="hidden"
+          animate="show"
+          className="no-scrollbar -mx-4 mt-5 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-4 sm:-mx-6 sm:px-6"
+        >
+          {inSeason.map((d) => (
+            <motion.div key={d.id} variants={rise} className="w-[64%] shrink-0 snap-start sm:w-[260px]">
+              <DestinationCard d={d} seen={tripSeen(d, seenIds)} />
+            </motion.div>
+          ))}
+        </motion.div>
+        <p className="text-xs text-dim">
+          {inSeason.length} trips are in their best season{month ? ` in ${MONTHS_LONG[month - 1]}` : ""}: good weather and
+          fewer crowds.
+        </p>
+      </section>
+
+      {/* Road trips */}
+      {drives.length > 0 && (
+        <section>
+          <Reveal>
+            <Eyebrow>No flight needed</Eyebrow>
+            <h2 className="font-display mt-2 text-4xl md:text-5xl">Road trips from {home.city}.</h2>
+            <p className="mt-2 max-w-lg text-dim">Bucket-list sights within a day&apos;s drive. Priced with gas instead of airfare.</p>
+          </Reveal>
+          <motion.div
+            variants={stagger}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, margin: "-40px" }}
+            className="mt-6 grid gap-4 sm:grid-cols-2"
+          >
+            {drives.map((d) => (
+              <motion.div key={d.id} variants={rise}>
+                <GemCard p={d.places[0]} d={d} />
+              </motion.div>
+            ))}
+          </motion.div>
+        </section>
+      )}
 
       {/* Hidden gems */}
       <section>

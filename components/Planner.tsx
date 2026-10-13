@@ -13,6 +13,8 @@ import { useClimate, useRates, useWiki } from "@/lib/live";
 import { actions, selectMemories, selectSettings, uid, useStore } from "@/lib/store";
 import { flag, money } from "@/lib/format";
 import { CostBreakdown } from "./CostBreakdown";
+import { DestinationPicker } from "./DestinationPicker";
+import { PackingList } from "./PackingList";
 import { WikiImage } from "./WikiImage";
 import { Button, Chip, EASE, Eyebrow, Reveal } from "./ui";
 import type { MapStop } from "./TripMap";
@@ -114,7 +116,7 @@ export function Planner() {
       <section className="rounded-[28px] border border-edge bg-panel p-4 shadow-card sm:p-6" aria-label="Trip options">
         <div className="flex flex-col gap-6">
           <Field label="Destination">
-            <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:px-6">
+            <div className="flex flex-wrap gap-2">
               <motion.button
                 type="button"
                 onClick={() => surprise()}
@@ -126,11 +128,15 @@ export function Planner() {
                 </motion.span>
                 Surprise me
               </motion.button>
-              {DESTINATIONS.map((d) => (
-                <Chip key={d.id} on={d.id === destId} onClick={() => setDestId(d.id)} className="shrink-0">
-                  <span aria-hidden>{flag(d.countryCode)}</span> {d.name}
-                </Chip>
-              ))}
+              <DestinationPicker
+                value={dest}
+                month={month}
+                seenIds={new Set(visitedPlaceIds)}
+                onChange={(id) => {
+                  setDestId(id);
+                  setSeed(1);
+                }}
+              />
             </div>
           </Field>
 
@@ -323,7 +329,7 @@ function TripResult({
   onSave: () => void;
 }) {
   const { dest } = trip;
-  const hero = dest.places.find((p) => p.id === dest.wonder) ?? dest.places[0];
+  const hero = dest.places[0];
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start end", "end start"] });
   const y = useTransform(scrollYProgress, [0, 1], ["-8%", "8%"]);
@@ -332,7 +338,7 @@ function TripResult({
     const s: MapStop[] = [{ lat: dest.base.lat, lng: dest.base.lng, label: `Base: ${dest.base.name}`, kind: "base", n: "⌂" }];
     trip.plan.forEach((d) =>
       d.places.forEach((p) =>
-        s.push({ lat: p.lat, lng: p.lng, label: `Day ${d.day} · ${p.name}`, kind: p.kind === "wonder" ? "wonder" : "gem", n: d.day }),
+        s.push({ lat: p.lat, lng: p.lng, label: `Day ${d.day} · ${p.name}`, kind: p.kind === "gem" ? "gem" : "wonder", n: d.day }),
       ),
     );
     return s;
@@ -408,12 +414,16 @@ function TripResult({
             days={trip.days}
             currency={currency}
             rates={rates}
+            drive={trip.drive}
           />
         </Reveal>
 
         <div className="space-y-6">
           <Reveal delay={0.08}>
             <Weather dest={dest} month={trip.month} />
+          </Reveal>
+          <Reveal delay={0.1}>
+            <PackingList trip={trip} />
           </Reveal>
           <Reveal delay={0.12} className="rounded-[28px] border border-edge bg-panel p-5 shadow-card sm:p-6">
             <h3 className="flex items-center gap-2 text-sm font-semibold text-txt">
@@ -457,7 +467,7 @@ function TripResult({
           </h3>
           <ul className="flex gap-3 text-xs text-dim">
             <li className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-txt" aria-hidden />Base</li>
-            {dest.wonder && <li className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-gold" aria-hidden />Wonder</li>}
+            <li className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-gold" aria-hidden />Bucket list</li>
             <li className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-sea" aria-hidden />Hidden gem</li>
           </ul>
         </div>
@@ -482,14 +492,14 @@ function TripResult({
             >
               <span
                 className={`relative z-10 grid h-10 w-10 shrink-0 place-items-center rounded-full text-sm font-bold tabular-nums ring-4 ring-bg ${
-                  d.kind === "wonder"
+                  d.kind === "wonder" || d.kind === "icon"
                     ? "bg-gold text-black"
                     : d.kind === "gem"
                       ? "bg-sea text-black"
                       : "bg-panel2 text-dim"
                 }`}
               >
-                {d.kind === "wonder" ? <Star size={16} className="fill-current" aria-label={`Day ${d.day}`} /> : d.day}
+                {d.kind === "wonder" || d.kind === "icon" ? <Star size={16} className="fill-current" aria-label={`Day ${d.day}`} /> : d.day}
               </span>
               <div className="min-w-0 flex-1 overflow-hidden rounded-[22px] border border-edge bg-panel shadow-card">
                 {d.places.length > 0 && (
@@ -502,7 +512,8 @@ function TripResult({
                 <div className="p-4">
                   <p className="text-xs font-semibold uppercase tracking-[0.14em] text-faint">
                     Day {d.day}
-                    {d.kind === "wonder" && <span className="text-gold"> · Wonder</span>}
+                    {d.kind === "wonder" && <span className="text-gold"> · Wonder of the world</span>}
+                    {d.kind === "icon" && <span className="text-gold"> · Bucket list</span>}
                     {d.kind === "gem" && <span className="text-sea"> · Hidden gem</span>}
                   </p>
                   <h4 className="mt-1 text-lg font-semibold leading-snug text-txt">{d.title}</h4>
@@ -524,8 +535,8 @@ function TripResult({
       </section>
 
       <p className="text-center text-xs text-faint">
-        Flight estimate {money(trip.costs[0].usd, currency, rates)} for {Math.round(trip.miles).toLocaleString()} mi
-        each way · photos &amp; summaries from Wikipedia
+        {trip.drive ? "Gas estimate" : "Flight estimate"} {money(trip.costs[0].usd, currency, rates)} for{" "}
+        {Math.round(trip.miles).toLocaleString()} mi each way · photos &amp; summaries from Wikipedia
       </p>
     </div>
   );

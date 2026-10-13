@@ -13,7 +13,7 @@ import { addPhoto, deletePhoto, usePhotoURL } from "@/lib/photos";
 import { actions, selectMemories, selectSettings, selectTrips, uid, useStore, type Memory } from "@/lib/store";
 import { useRates } from "@/lib/live";
 import { flag, money } from "@/lib/format";
-import { MONTHS_LONG } from "@/lib/planner";
+import { MONTHS_LONG, tripDates } from "@/lib/planner";
 import { WikiImage } from "./WikiImage";
 import { AnimatedNumber, Button, EASE, Eyebrow, Reveal, rise, stagger } from "./ui";
 import type { MapStop } from "./TripMap";
@@ -762,7 +762,10 @@ function Wishlist() {
         {trips.map((t) => {
           const d = DESTINATIONS.find((x) => x.id === t.destId);
           if (!d) return null;
-          const hero = d.places.find((p) => p.id === d.wonder) ?? d.places[0];
+          const hero = d.places[0];
+          const start = new Date(tripDates(t.month, t.days).start + "T00:00");
+          const daysAway = Math.max(0, Math.ceil((start.getTime() - Date.now()) / 86400000));
+          const monthsAway = Math.max(1, Math.floor(daysAway / 30.4));
           return (
             <motion.li key={t.id} variants={rise} exit={{ opacity: 0, scale: 0.9 }} layout className="group relative">
               <Link
@@ -777,6 +780,12 @@ function Wishlist() {
                   </p>
                   <p className="font-display text-3xl leading-none">{d.name}</p>
                   <p className="mt-1 text-sm font-semibold tabular-nums">~{money(t.totalUSD, settings.currency, rates)}</p>
+                  <p className="mt-2 flex flex-wrap gap-1.5 text-[11px] font-semibold tabular-nums">
+                    <span className="rounded-full bg-white/20 px-2 py-0.5 backdrop-blur">{daysAway} days away</span>
+                    <span className="rounded-full bg-white/20 px-2 py-0.5 backdrop-blur">
+                      Save {money(t.totalUSD / monthsAway, settings.currency, rates)}/mo
+                    </span>
+                  </p>
                 </div>
               </Link>
               <button

@@ -3,18 +3,19 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "motion/react";
-import { BookHeart, Compass, Landmark, Sparkles } from "lucide-react";
+import { BookHeart, Compass, ListChecks, Sparkles } from "lucide-react";
 
 const TABS = [
   { href: "/", label: "Discover", Icon: Compass },
   { href: "/plan", label: "Plan", Icon: Sparkles },
-  { href: "/wonders", label: "Wonders", Icon: Landmark },
+  { href: "/bucket", label: "Bucket list", Icon: ListChecks },
   { href: "/memories", label: "Memories", Icon: BookHeart },
 ];
 
 function useActive() {
   const path = (usePathname() || "/").replace(/\/+$/, "") || "/";
-  return (href: string) => (href === "/" ? path === "/" : path.startsWith(href));
+  return (href: string) =>
+    href === "/" ? path === "/" : path.startsWith(href) || (href === "/bucket" && path.startsWith("/wonders"));
 }
 
 export function Nav() {

@@ -24,6 +24,7 @@ export function CostBreakdown({
   days,
   currency,
   rates,
+  drive = false,
 }: {
   costs: CostLine[];
   total: number;
@@ -32,6 +33,7 @@ export function CostBreakdown({
   days: number;
   currency: string;
   rates: Rates | null;
+  drive?: boolean;
 }) {
   const [hover, setHover] = useState<CostLine["key"] | null>(null);
   const [open, setOpen] = useState<CostLine["key"] | null>("tickets");
@@ -164,8 +166,9 @@ export function CostBreakdown({
         <Info size={14} className="mt-0.5 shrink-0" aria-hidden />
         <span>
           Ticket prices are real 2026 fares (tap a source to check). Exchange rates are{" "}
-          {rates?.live ? `live (${rates.updated.replace(/ \+0000$/, "")})` : "approximate — offline"}. Flights use a
-          distance-based model; tap Google Flights below for today&apos;s actual fares. Stay, food and transport are
+          {rates?.live ? `live (${rates.updated.replace(/ \+0000$/, "")})` : "approximate — offline"}. {drive
+            ? "Gas assumes 25 mpg at $3.60/gal."
+            : "Flights use a distance-based model; tap Google Flights below for today's actual fares."} Stay, food and transport are
           averages from traveler budget guides.
         </span>
       </p>

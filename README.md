@@ -5,10 +5,10 @@ A free trip planner and memory book. Pick a month and a vibe and it suggests a t
 with real ticket fares and live exchange rates. Keeps a scrapbook of everywhere you've been, with
 your photos.
 
-- **Discover:** an interactive 3D globe of the wonders and the places you've been, plus hand-picked hidden gems
-- **Plan:** "Surprise me" trip generator. You get a day-by-day itinerary, a route map, a cost breakdown, last year's weather for that month, and pre-filled Google Flights / Skyscanner / Booking.com links
-- **Wonders:** progress tracker for all seven. Tick one off and it goes into your memory book
-- **Memories:** polaroid scrapbook with photo uploads, notes, star ratings, a map of everywhere you've been, a wishlist of saved trips, and JSON backup/restore
+- **Discover:** an interactive 3D globe of the bucket list and where you've been, *Where to go in [month]*, road trips from your home airport, and hidden gems
+- **Plan:** "Surprise me" trip generator across 40+ trips. You get a day-by-day itinerary, a route map, a cost breakdown with real ticket prices, last year's weather, a packing list built from that weather, and pre-filled flight/hotel links (or Google Maps on road trips)
+- **Bucket list:** 40 places to see before you die (the New 7 Wonders + 33 more icons), with continent filters and progress tracking. Tick one off and it goes into your memory book
+- **Memories:** polaroid scrapbook with photo uploads, notes, ratings, a map, a wishlist of saved trips with a countdown and a monthly savings target, and JSON backup/restore
 
 ## Where the numbers come from
 

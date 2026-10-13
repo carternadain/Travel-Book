@@ -121,6 +121,8 @@ export type Rates = { base: "USD"; rates: Record<string, number>; updated: strin
 const FALLBACK_RATES: Record<string, number> = {
   USD: 1, CNY: 7.1, JOD: 0.709, BRL: 5.4, PEN: 3.6, MXN: 18.5, EUR: 0.88, INR: 85,
   EGP: 48.5, GEL: 2.7, LAK: 21500, GBP: 0.75, CAD: 1.38, AUD: 1.52, JPY: 148, KRW: 1380,
+  ARS: 1450, CLP: 950, BOB: 6.91, CHF: 0.8, ISK: 125, TRY: 42, VND: 26000, IDR: 16300, ZAR: 18,
+  MAD: 9.3, NZD: 1.7,
 };
 
 export async function fetchRates(): Promise<Rates> {

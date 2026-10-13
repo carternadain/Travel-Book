@@ -16,7 +16,8 @@
   --accent-ink: #b5400c;
   --on-accent: #ffffff;
   --sea: #0f766e;
-  --gold: #a86a12;
+  --gold: #8f5c0e;
+  --marker-gold: #f2ad33; /* matches the globe's dots */
   --glass: rgb(255 255 255 / 0.72);
   --shadow: 0 1px 2px rgb(40 30 20 / 0.06), 0 8px 24px -8px rgb(40 30 20 / 0.14);
   --shadow-lg: 0 2px 4px rgb(40 30 20 / 0.06), 0 24px 60px -20px rgb(40 30 20 / 0.28);
@@ -70,6 +71,7 @@
   --color-on-accent: var(--on-accent);
   --color-sea: var(--sea);
   --color-gold: var(--gold);
+  --color-marker-gold: var(--marker-gold);
   --color-glass: var(--glass);
   --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   --font-display: var(--font-serif), "Iowan Old Style", Georgia, serif;
@@ -103,10 +105,11 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 3px;
-  border-radius: 10px;
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
 }
 
 ::selection {

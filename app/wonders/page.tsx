@@ -9,7 +9,8 @@ import { WONDERS } from "@/lib/data";
 import { toUSD, useRates } from "@/lib/live";
 import { flag, money } from "@/lib/format";
 import { MONTHS } from "@/lib/planner";
-import { actions, selectMemories, selectSettings, uid, useStore } from "@/lib/store";
+import { selectMemories, selectSettings, useStore } from "@/lib/store";
+import { toggleVisited } from "@/lib/visited";
 
 export default function WondersPage() {
   const memories = useStore(selectMemories);
@@ -18,31 +19,7 @@ export default function WondersPage() {
   const seen = new Set(memories.map((m) => m.placeId).filter(Boolean));
   const count = WONDERS.filter((w) => seen.has(w.id)).length;
 
-  function toggle(w: (typeof WONDERS)[number]) {
-    const mem = memories.find((m) => m.placeId === w.id);
-    if (mem) {
-      if (mem.photoIds.length || mem.notes.trim()) {
-        if (!confirm(`Remove ${w.name} from your memory book? Its photos and notes will be deleted too.`)) return;
-      }
-      actions.deleteMemory(mem.id);
-    } else {
-      actions.upsertMemory({
-        id: uid(),
-        title: w.name,
-        country: w.dest.country,
-        countryCode: w.dest.countryCode,
-        lat: w.lat,
-        lng: w.lng,
-        wiki: w.wiki,
-        photo: w.photo,
-        placeId: w.id,
-        notes: "",
-        rating: 0,
-        photoIds: [],
-        createdAt: Date.now(),
-      });
-    }
-  }
+  const toggle = (w: (typeof WONDERS)[number]) => toggleVisited(w, w.dest, memories);
 
   const R = 70;
   const C = 2 * Math.PI * R;
