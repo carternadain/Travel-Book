@@ -27,6 +27,7 @@ export type Place = {
   id: string;
   name: string;
   wiki: string; // English Wikipedia page title
+  photo?: string; // hand-picked Wikimedia Commons file (free licence); falls back to the Wikipedia lead image
   lat: number;
   lng: number;
   kind: "wonder" | "gem";
@@ -91,6 +92,7 @@ export const DESTINATIONS: Destination[] = [
         id: "great-wall",
         name: "Great Wall at Mutianyu",
         wiki: "Mutianyu",
+        photo: "Great Wall of China July 2006.JPG",
         lat: 40.4319,
         lng: 116.5704,
         kind: "wonder",
@@ -163,6 +165,7 @@ export const DESTINATIONS: Destination[] = [
         id: "petra",
         name: "Petra",
         wiki: "Petra",
+        photo: "Al Khazneh Petra edit 2.jpg",
         lat: 30.3285,
         lng: 35.4444,
         kind: "wonder",
@@ -189,6 +192,7 @@ export const DESTINATIONS: Destination[] = [
         id: "wadi-rum",
         name: "Wadi Rum",
         wiki: "Wadi Rum",
+        photo: "Wadi Rum BW 27.JPG",
         lat: 29.5765,
         lng: 35.4206,
         kind: "gem",
@@ -233,6 +237,7 @@ export const DESTINATIONS: Destination[] = [
         id: "christ-redeemer",
         name: "Christ the Redeemer",
         wiki: "Christ the Redeemer (statue)",
+        photo: "Christ the Redeemer - Cristo Redentor.jpg",
         lat: -22.9519,
         lng: -43.2105,
         kind: "wonder",
@@ -303,6 +308,7 @@ export const DESTINATIONS: Destination[] = [
         id: "machu-picchu",
         name: "Machu Picchu",
         wiki: "Machu Picchu",
+        photo: "80 - Machu Picchu - Juin 2009 - edit.jpg",
         lat: -13.1631,
         lng: -72.545,
         kind: "wonder",
@@ -386,6 +392,7 @@ export const DESTINATIONS: Destination[] = [
         id: "chichen-itza",
         name: "Chichén Itzá",
         wiki: "Chichen Itza",
+        photo: "Chichen-Itza El Castillo.jpg",
         lat: 20.6843,
         lng: -88.5678,
         kind: "wonder",
@@ -467,6 +474,7 @@ export const DESTINATIONS: Destination[] = [
         id: "colosseum",
         name: "Colosseum",
         wiki: "Colosseum",
+        photo: "Colosseo 2020.jpg",
         lat: 41.8902,
         lng: 12.4922,
         kind: "wonder",
@@ -548,6 +556,7 @@ export const DESTINATIONS: Destination[] = [
         id: "taj-mahal",
         name: "Taj Mahal",
         wiki: "Taj Mahal",
+        photo: "Taj Mahal (Edited).jpeg",
         lat: 27.1751,
         lng: 78.0421,
         kind: "wonder",
@@ -629,6 +638,7 @@ export const DESTINATIONS: Destination[] = [
         id: "giza",
         name: "Pyramids of Giza",
         wiki: "Giza pyramid complex",
+        photo: "All Gizah Pyramids.jpg",
         lat: 29.9792,
         lng: 31.1342,
         kind: "gem",
@@ -708,6 +718,7 @@ export const DESTINATIONS: Destination[] = [
         id: "hierve",
         name: "Hierve el Agua",
         wiki: "Hierve el Agua",
+        photo: "Cascada petrificada de Hierve el Agua en Oaxaca.jpg",
         lat: 16.8656,
         lng: -96.2761,
         kind: "gem",
@@ -805,6 +816,7 @@ export const DESTINATIONS: Destination[] = [
         id: "bled",
         name: "Lake Bled",
         wiki: "Lake Bled",
+        photo: "Bled Island 05.jpg",
         lat: 46.3636,
         lng: 14.0938,
         kind: "gem",
@@ -859,6 +871,7 @@ export const DESTINATIONS: Destination[] = [
         id: "kuang-si",
         name: "Kuang Si Falls",
         wiki: "Kuang Si Falls",
+        photo: "Kuang Si Falls and a turquoise water pool in Luang Prabang province Laos.jpg",
         lat: 19.7489,
         lng: 101.9917,
         kind: "gem",
@@ -905,11 +918,11 @@ export const WONDERS = WONDER_IDS.map((id) => {
 export type Airport = { code: string; city: string; lat: number; lng: number };
 
 export const HOME_AIRPORTS: Airport[] = [
+  { code: "PHX", city: "Phoenix", lat: 33.43, lng: -112.01 },
   { code: "LAX", city: "Los Angeles", lat: 33.94, lng: -118.41 },
   { code: "SFO", city: "San Francisco", lat: 37.62, lng: -122.38 },
   { code: "SEA", city: "Seattle", lat: 47.45, lng: -122.31 },
   { code: "SAN", city: "San Diego", lat: 32.73, lng: -117.19 },
-  { code: "PHX", city: "Phoenix", lat: 33.43, lng: -112.01 },
   { code: "LAS", city: "Las Vegas", lat: 36.08, lng: -115.15 },
   { code: "DEN", city: "Denver", lat: 39.86, lng: -104.67 },
   { code: "DFW", city: "Dallas", lat: 32.9, lng: -97.04 },
@@ -938,11 +951,12 @@ export type SeedMemory = {
   lat: number;
   lng: number;
   wiki: string;
+  photo?: string;
 };
 
 // Places already visited — pre-loaded into the memory book.
 export const SEED_MEMORIES: SeedMemory[] = [
-  { id: "seed-korea", title: "Seoul", country: "South Korea", countryCode: "KR", lat: 37.5665, lng: 126.978, wiki: "Seoul" },
+  { id: "seed-korea", title: "Seoul", country: "South Korea", countryCode: "KR", lat: 37.5665, lng: 126.978, wiki: "Seoul", photo: "Gyeonghoeru (Royal Banquet Hall) at Gyeongbokgung Palace, Seoul.jpg" },
   { id: "seed-japan", title: "Tokyo", country: "Japan", countryCode: "JP", lat: 35.6762, lng: 139.6503, wiki: "Tokyo" },
   { id: "seed-cdmx", title: "Mexico City", country: "Mexico", countryCode: "MX", lat: 19.4326, lng: -99.1332, wiki: "Mexico City" },
 ];

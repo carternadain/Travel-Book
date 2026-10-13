@@ -14,6 +14,7 @@ export type Memory = {
   lat: number;
   lng: number;
   wiki?: string;
+  photo?: string; // Wikimedia Commons file used until you add your own photos
   placeId?: string; // links to a wonder / gem in data.ts
   dateFrom?: string; // yyyy-mm-dd
   dateTo?: string;
@@ -51,7 +52,7 @@ const KEY = "tb-state-v1";
 
 function seed(): State {
   return {
-    settings: { home: "LAX", style: "mid", currency: "USD" },
+    settings: { home: "PHX", style: "mid", currency: "USD" },
     memories: SEED_MEMORIES.map((m, i) => ({
       ...m,
       notes: "",
@@ -71,6 +72,11 @@ function load(): State {
   try {
     const raw = localStorage.getItem(KEY);
     state = raw ? { ...seed(), ...JSON.parse(raw) } : seed();
+    // One-time: the first version defaulted to LAX; home is Phoenix.
+    if (state!.settings.home === "LAX" && !localStorage.getItem("tb-home-phx")) {
+      state = { ...state!, settings: { ...state!.settings, home: "PHX" } };
+      localStorage.setItem("tb-home-phx", "1");
+    }
   } catch {
     state = seed();
   }

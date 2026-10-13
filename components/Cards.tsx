@@ -11,6 +11,7 @@ import type { Destination, Place } from "@/lib/data";
 export function PhotoCard({
   href,
   wiki,
+  photo,
   title,
   kicker,
   sub,
@@ -20,6 +21,7 @@ export function PhotoCard({
 }: {
   href: string;
   wiki: string;
+  photo?: string;
   title: string;
   kicker?: string;
   sub?: string;
@@ -46,7 +48,7 @@ export function PhotoCard({
           variants={{ rest: { scale: 1 }, hover: { scale: 1.06 } }}
           transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
         >
-          <WikiImage title={wiki} alt={title} className="h-full w-full" />
+          <WikiImage title={wiki} photo={photo} alt={title} className="h-full w-full" />
         </motion.div>
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
         {seen && (
@@ -77,6 +79,7 @@ export function DestinationCard({ d, seen }: { d: Destination; seen?: boolean })
     <PhotoCard
       href={`/plan?dest=${d.id}`}
       wiki={hero.wiki}
+      photo={hero.photo}
       title={d.name}
       kicker={`${flag(d.countryCode)}  ${d.country}`}
       sub={d.pitch}
@@ -90,6 +93,7 @@ export function GemCard({ p, d }: { p: Place; d: Destination }) {
     <PhotoCard
       href={`/plan?dest=${d.id}`}
       wiki={p.wiki}
+      photo={p.photo}
       title={p.name}
       kicker={`${flag(d.countryCode)}  ${d.country}`}
       sub={p.blurb}

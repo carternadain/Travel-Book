@@ -343,7 +343,7 @@ function TripResult({
       {/* Cinematic hero */}
       <div ref={heroRef} className="relative overflow-hidden rounded-[28px] shadow-lift">
         <motion.div style={{ y }} className="absolute -inset-y-[10%] inset-x-0">
-          <WikiImage title={hero.wiki} alt={hero.name} large className="h-full w-full" />
+          <WikiImage title={hero.wiki} photo={hero.photo} alt={hero.name} large className="h-full w-full" />
         </motion.div>
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-black/10" />
         <div className="relative flex aspect-[4/5] flex-col justify-end p-5 text-white sm:aspect-[16/8] sm:p-8">
@@ -495,7 +495,7 @@ function TripResult({
                 {d.places.length > 0 && (
                   <div className={`grid h-36 gap-[2px] sm:h-44 ${d.places.length > 1 ? "grid-cols-2" : ""}`}>
                     {d.places.map((p) => (
-                      <WikiImage key={p.id} title={p.wiki} alt={p.name} className="h-full w-full" />
+                      <WikiImage key={p.id} title={p.wiki} photo={p.photo} alt={p.name} className="h-full w-full" />
                     ))}
                   </div>
                 )}

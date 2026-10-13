@@ -35,12 +35,22 @@ npm run build    # static site in ./out
 
 ## Deploy for free
 
-The repo ships with a GitHub Pages workflow. In **Settings → Pages**, set *Source* to
-**GitHub Actions**. Every push to `main` then deploys to
-`https://<you>.github.io/<repo-name>/`. On your phone, open it and use *Share → Add to Home Screen*
-to get an app icon.
+**Vercel (recommended):** go to [vercel.com/new](https://vercel.com/new), import this repo, and click
+Deploy. You don't need to change any settings, environment variables or base path. The free Hobby
+plan covers it: the app is a static site with no server code, so there are no function or database
+costs. Every push to `main` redeploys.
 
-(Vercel or Netlify also work: import the repo. No base path or env vars are needed there.)
+**GitHub Pages:** in **Settings → Pages**, set *Source* to **GitHub Actions**. The included
+workflow deploys to `https://<you>.github.io/<repo-name>/`.
+
+On your phone, open the site and use *Share → Add to Home Screen* to get an app icon.
+
+## Photos
+
+Headline places use hand-picked, freely licensed photos from Wikimedia Commons (`photo` in
+`lib/data.ts`). Every other place uses the lead image of its Wikipedia article. If a Commons file
+ever disappears, the app falls back to the Wikipedia image automatically. Your own photos go in
+the Memory Book. They're resized on-device and stored in your browser.
 
 ## Adding destinations
 

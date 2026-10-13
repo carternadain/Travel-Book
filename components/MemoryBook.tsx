@@ -236,7 +236,7 @@ function Polaroid({ m, tilt, onOpen }: { m: Memory; tilt: number; onOpen: () => 
           // eslint-disable-next-line @next/next/no-img-element
           <img src={cover} alt={m.title} className="absolute inset-0 h-full w-full object-cover" />
         ) : (
-          <WikiImage title={m.wiki ?? m.title} alt={m.title} className="h-full w-full" imgClassName="sepia-[.15]" />
+          <WikiImage title={m.wiki ?? m.title} photo={m.photo} alt={m.title} className="h-full w-full" imgClassName="sepia-[.15]" />
         )}
         {m.photoIds.length > 0 && (
           <span className="absolute bottom-1.5 right-1.5 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-semibold text-white tabular-nums">
@@ -319,7 +319,7 @@ function MemorySheet({ m, onClose }: { m: Memory; onClose: () => void }) {
             // eslint-disable-next-line @next/next/no-img-element
             <img src={cover} alt="" className="absolute inset-0 h-full w-full object-cover" />
           ) : (
-            <WikiImage title={draft.wiki ?? draft.title} alt="" large className="absolute inset-0 h-full w-full" />
+            <WikiImage title={draft.wiki ?? draft.title} photo={draft.photo} alt="" large className="absolute inset-0 h-full w-full" />
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-black/30" />
           <button
@@ -769,7 +769,7 @@ function Wishlist() {
                 href={`/plan?dest=${t.destId}&days=${t.days}&month=${t.month}&seed=${t.seed}`}
                 className="relative block aspect-[4/3] overflow-hidden rounded-[22px] shadow-card transition-shadow hover:shadow-lift"
               >
-                <WikiImage title={hero.wiki} alt={d.name} className="h-full w-full transition-transform duration-1000 group-hover:scale-105" />
+                <WikiImage title={hero.wiki} photo={hero.photo} alt={d.name} className="h-full w-full transition-transform duration-1000 group-hover:scale-105" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/85 to-transparent" />
                 <div className="absolute inset-x-0 bottom-0 p-4 text-white">
                   <p className="text-xs text-white/80">

@@ -29,7 +29,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="grain min-h-dvh">
         <Providers>
           <Nav />
-          <main className="mx-auto w-full max-w-6xl px-4 pb-32 pt-4 sm:px-6 md:pb-16 md:pt-24">{children}</main>
+          <main className="mx-auto w-full max-w-6xl px-4 pb-8 pt-4 sm:px-6 md:pt-24">{children}</main>
+          <footer className="mx-auto w-full max-w-6xl px-4 pb-32 pt-8 text-xs text-faint sm:px-6 md:pb-12">
+            Photos by{" "}
+            <a className="underline underline-offset-2 hover:text-dim" href="https://commons.wikimedia.org" target="_blank" rel="noreferrer">
+              Wikimedia Commons
+            </a>{" "}
+            and Wikipedia contributors, used under their free licences (mostly CC BY-SA). Maps © OpenStreetMap, CARTO.
+          </footer>
         </Providers>
       </body>
     </html>

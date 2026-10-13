@@ -34,6 +34,7 @@ export default function WondersPage() {
         lat: w.lat,
         lng: w.lng,
         wiki: w.wiki,
+        photo: w.photo,
         placeId: w.id,
         notes: "",
         rating: 0,
@@ -110,6 +111,7 @@ export default function WondersPage() {
                 >
                   <WikiImage
                     title={w.wiki}
+                    photo={w.photo}
                     alt={w.name}
                     large
                     className="h-full w-full transition-transform duration-[1.4s] ease-[cubic-bezier(.16,1,.3,1)] group-hover:scale-105"
