@@ -1,0 +1,205 @@
+@import "tailwindcss";
+
+/* ── Theme tokens ─────────────────────────────────────────────
+   Warm paper by day, ink-black by night. Components use these
+   names only (bg-panel, text-dim, …) — never raw hex. */
+:root {
+  --bg: #f7f4ef;
+  --panel: #ffffff;
+  --panel2: #f0ebe3;
+  --edge: #e6dfd4;
+  --edge2: #d3c9ba;
+  --txt: #1a1714;
+  --dim: #574f45;
+  --faint: #6f675b;
+  --accent: #e0531a;
+  --accent-ink: #b5400c;
+  --on-accent: #ffffff;
+  --sea: #0f766e;
+  --gold: #a86a12;
+  --glass: rgb(255 255 255 / 0.72);
+  --shadow: 0 1px 2px rgb(40 30 20 / 0.06), 0 8px 24px -8px rgb(40 30 20 / 0.14);
+  --shadow-lg: 0 2px 4px rgb(40 30 20 / 0.06), 0 24px 60px -20px rgb(40 30 20 / 0.28);
+  /* Cost categories — validated categorical slots 1–5 (light) */
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --series-4: #eda100;
+  --series-5: #e87ba4;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0c0b0a;
+    --panel: #161412;
+    --panel2: #201d1a;
+    --edge: #2c2824;
+    --edge2: #3d3731;
+    --txt: #f6f2ec;
+    --dim: #c2b9ac;
+    --faint: #998f82;
+    --accent: #ff7a3d;
+    --accent-ink: #ff9a68;
+    --on-accent: #1a0b03;
+    --sea: #3fd1c1;
+    --gold: #f2c066;
+    --glass: rgb(22 20 18 / 0.7);
+    --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px -8px rgb(0 0 0 / 0.6);
+    --shadow-lg: 0 2px 4px rgb(0 0 0 / 0.4), 0 24px 60px -20px rgb(0 0 0 / 0.8);
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
+    --series-4: #c98500;
+    --series-5: #d55181;
+    color-scheme: dark;
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-panel: var(--panel);
+  --color-panel2: var(--panel2);
+  --color-edge: var(--edge);
+  --color-edge2: var(--edge2);
+  --color-txt: var(--txt);
+  --color-dim: var(--dim);
+  --color-faint: var(--faint);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-on-accent: var(--on-accent);
+  --color-sea: var(--sea);
+  --color-gold: var(--gold);
+  --color-glass: var(--glass);
+  --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-display: var(--font-serif), "Iowan Old Style", Georgia, serif;
+  --shadow-card: var(--shadow);
+  --shadow-lift: var(--shadow-lg);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+html {
+  background: var(--bg);
+  overflow-x: clip;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background: var(--bg);
+  color: var(--txt);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: clip;
+}
+
+.font-display {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: -0.015em;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 10px;
+}
+
+::selection {
+  background: color-mix(in oklab, var(--accent) 30%, transparent);
+}
+
+/* Soft film grain over the whole app — gives the paper some tooth. */
+.grain::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 60;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+/* Ambient aurora behind the hero */
+.aurora {
+  background:
+    radial-gradient(40% 50% at 20% 20%, color-mix(in oklab, var(--accent) 22%, transparent), transparent 70%),
+    radial-gradient(35% 45% at 85% 10%, color-mix(in oklab, var(--sea) 20%, transparent), transparent 70%),
+    radial-gradient(45% 40% at 60% 90%, color-mix(in oklab, var(--gold) 16%, transparent), transparent 70%);
+  filter: blur(20px);
+}
+
+.shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(100deg, transparent 20%, rgb(255 255 255 / 0.35) 50%, transparent 80%);
+  animation: shimmer 2.8s var(--ease-out-expo) infinite;
+}
+@keyframes shimmer {
+  60%, 100% { transform: translateX(100%); }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, var(--panel2) 0%, var(--edge) 50%, var(--panel2) 100%);
+  background-size: 200% 100%;
+  animation: skeleton 1.4s ease-in-out infinite;
+}
+@keyframes skeleton {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { scrollbar-width: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .shimmer::after, .skeleton { animation: none; }
+}
+
+/* Leaflet: match the theme */
+.leaflet-container {
+  isolation: isolate;
+  z-index: 0;
+  background: var(--panel2) !important;
+  font-family: var(--font-sans) !important;
+}
+.leaflet-control-attribution {
+  background: var(--glass) !important;
+  color: var(--faint) !important;
+  font-size: 10px !important;
+}
+.leaflet-control-attribution a { color: var(--dim) !important; }
+.leaflet-bar a {
+  background: var(--panel) !important;
+  color: var(--txt) !important;
+  border-color: var(--edge) !important;
+}
+.leaflet-tooltip {
+  background: var(--panel) !important;
+  color: var(--txt) !important;
+  border: 1px solid var(--edge) !important;
+  border-radius: 8px !important;
+  box-shadow: var(--shadow) !important;
+  font-weight: 500;
+}
+.leaflet-tooltip-top::before { border-top-color: var(--panel) !important; }
+.trip-route {
+  stroke: var(--accent);
+  animation: route-dash 1.2s linear infinite;
+}
+@keyframes route-dash {
+  to { stroke-dashoffset: -28; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .trip-route { animation: none; }
+}

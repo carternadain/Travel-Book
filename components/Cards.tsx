@@ -1,0 +1,99 @@
+"use client";
+
+import Link from "next/link";
+import { motion } from "motion/react";
+import { ArrowUpRight, Check } from "lucide-react";
+import { WikiImage } from "./WikiImage";
+import { flag } from "@/lib/format";
+import type { Destination, Place } from "@/lib/data";
+
+/** Tall cinematic photo card. */
+export function PhotoCard({
+  href,
+  wiki,
+  title,
+  kicker,
+  sub,
+  seen,
+  className = "",
+  tall = true,
+}: {
+  href: string;
+  wiki: string;
+  title: string;
+  kicker?: string;
+  sub?: string;
+  seen?: boolean;
+  className?: string;
+  tall?: boolean;
+}) {
+  return (
+    <motion.div
+      whileHover="hover"
+      whileTap={{ scale: 0.98 }}
+      initial="rest"
+      animate="rest"
+      className={`group relative ${className}`}
+    >
+      <Link
+        href={href}
+        className={`relative block overflow-hidden rounded-[22px] bg-panel2 shadow-card transition-shadow duration-500 hover:shadow-lift ${
+          tall ? "aspect-[3/4]" : "aspect-[4/3]"
+        }`}
+      >
+        <motion.div
+          className="absolute inset-0"
+          variants={{ rest: { scale: 1 }, hover: { scale: 1.06 } }}
+          transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <WikiImage title={wiki} alt={title} className="h-full w-full" />
+        </motion.div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
+        {seen && (
+          <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-semibold text-black backdrop-blur">
+            <Check size={12} strokeWidth={3} aria-hidden /> Seen
+          </span>
+        )}
+        <motion.span
+          variants={{ rest: { opacity: 0, x: -6, y: 6 }, hover: { opacity: 1, x: 0, y: 0 } }}
+          className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-white text-black"
+          aria-hidden
+        >
+          <ArrowUpRight size={18} />
+        </motion.span>
+        <div className="absolute inset-x-0 bottom-0 p-4 text-white">
+          {kicker && <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/80">{kicker}</p>}
+          <h3 className="font-display mt-1 text-[26px] leading-[1.05]">{title}</h3>
+          {sub && <p className="mt-1.5 line-clamp-2 text-[13px] leading-snug text-white/85">{sub}</p>}
+        </div>
+      </Link>
+    </motion.div>
+  );
+}
+
+export function DestinationCard({ d, seen }: { d: Destination; seen?: boolean }) {
+  const hero = d.places.find((p) => p.id === d.wonder) ?? d.places[0];
+  return (
+    <PhotoCard
+      href={`/plan?dest=${d.id}`}
+      wiki={hero.wiki}
+      title={d.name}
+      kicker={`${flag(d.countryCode)}  ${d.country}`}
+      sub={d.pitch}
+      seen={seen}
+    />
+  );
+}
+
+export function GemCard({ p, d }: { p: Place; d: Destination }) {
+  return (
+    <PhotoCard
+      href={`/plan?dest=${d.id}`}
+      wiki={p.wiki}
+      title={p.name}
+      kicker={`${flag(d.countryCode)}  ${d.country}`}
+      sub={p.blurb}
+      tall={false}
+    />
+  );
+}
