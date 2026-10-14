@@ -343,7 +343,7 @@ function MemorySheet({ m, onClose }: { m: Memory; onClose: () => void }) {
           </div>
         </div>
 
-        <div className="space-y-6 overflow-y-auto p-5 sm:p-6">
+        <div className="min-h-0 flex-1 space-y-6 overflow-y-auto overscroll-contain p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:p-6">
           <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-2 text-sm">
               <CalendarDays size={16} className="text-faint" aria-hidden />

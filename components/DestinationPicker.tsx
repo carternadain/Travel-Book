@@ -114,7 +114,7 @@ function Sheet({
         transition={{ duration: 0.45, ease: EASE }}
         className="relative flex max-h-[88dvh] w-full max-w-3xl flex-col overflow-hidden rounded-t-[28px] border border-edge bg-panel shadow-lift sm:rounded-[28px]"
       >
-        <div className="border-b border-edge p-4 sm:p-5">
+        <div className="shrink-0 border-b border-edge p-4 sm:p-5">
           <div className="flex items-center gap-3">
             <Search size={18} className="text-faint" aria-hidden />
             <input
@@ -134,7 +134,7 @@ function Sheet({
               <X size={18} />
             </button>
           </div>
-          <div className="no-scrollbar -mx-4 mt-3 flex gap-1.5 overflow-x-auto px-4 sm:-mx-5 sm:px-5">
+          <div className="mt-3 flex flex-wrap gap-1.5">
             <Chip on={continent === "all"} onClick={() => setContinent("all")} className="shrink-0">
               All
             </Chip>
@@ -149,7 +149,7 @@ function Sheet({
           </div>
         </div>
 
-        <div className="overflow-y-auto p-4 sm:p-5">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:p-5">
           {list.length === 0 ? (
             <p className="py-10 text-center text-sm text-dim">Nothing matches. Try a country or a continent.</p>
           ) : (
