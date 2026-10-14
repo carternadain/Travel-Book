@@ -212,3 +212,101 @@ export function useClimate(lat: number, lng: number, month: number) {
   }, [lat, lng, month]);
   return c;
 }
+
+// ---------- This weekend's forecast (Open-Meteo, one batched request) ----------
+
+export type DayForecast = { date: string; code: number; high: number; low: number; rain: number };
+
+/** The coming Fri/Sat/Sun as yyyy-mm-dd (this weekend if it's Fri–Sun now). */
+export function nextWeekend(now = new Date()) {
+  const d = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const dow = d.getDay(); // 0 Sun … 6 Sat
+  const back = dow === 6 ? 1 : dow === 0 ? 2 : 0;
+  const fwd = dow === 5 || back ? 0 : (5 - dow + 7) % 7;
+  d.setDate(d.getDate() - back + fwd);
+  const iso = (x: Date) =>
+    `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, "0")}-${String(x.getDate()).padStart(2, "0")}`;
+  return [0, 1, 2].map((i) => iso(new Date(d.getFullYear(), d.getMonth(), d.getDate() + i)));
+}
+
+export async function fetchWeekendForecast(spots: { id: string; lat: number; lng: number }[]) {
+  const days = nextWeekend();
+  const key = `forecast:${days[0]}:${spots.map((s) => s.id).join(",")}`;
+  const hit = cacheGet<Record<string, DayForecast[]>>(key, 1000 * 60 * 60 * 3);
+  if (hit) return hit;
+  return once(key, async () => {
+    try {
+      const url =
+        `https://api.open-meteo.com/v1/forecast?latitude=${spots.map((s) => s.lat.toFixed(3)).join(",")}` +
+        `&longitude=${spots.map((s) => s.lng.toFixed(3)).join(",")}` +
+        `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max` +
+        `&temperature_unit=fahrenheit&timezone=auto&start_date=${days[0]}&end_date=${days[2]}`;
+      const j = await (await fetch(url)).json();
+      const arr = Array.isArray(j) ? j : [j];
+      const out: Record<string, DayForecast[]> = {};
+      spots.forEach((s, i) => {
+        const d = arr[i]?.daily;
+        if (!d) return;
+        out[s.id] = d.time.map((date: string, k: number) => ({
+          date,
+          code: d.weather_code[k] ?? 0,
+          high: d.temperature_2m_max[k] ?? 0,
+          low: d.temperature_2m_min[k] ?? 0,
+          rain: d.precipitation_probability_max[k] ?? 0,
+        }));
+      });
+      cacheSet(key, out);
+      return out;
+    } catch {
+      return null;
+    }
+  });
+}
+
+export function useWeekendForecast(spots: { id: string; lat: number; lng: number }[]) {
+  const [f, setF] = useState<Record<string, DayForecast[]> | null | undefined>(undefined);
+  const sig = spots.map((s) => s.id).join(",");
+  useEffect(() => {
+    let live = true;
+    fetchWeekendForecast(spots).then((v) => live && setF(v));
+    return () => {
+      live = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sig]);
+  return f; // undefined = loading, null = unavailable
+}
+
+/** 0–100: how nice a weekend looks — mild highs, low rain chance. */
+export function niceScore(days: DayForecast[] | undefined) {
+  if (!days?.length) return 0;
+  const per = days.map((d) => {
+    const temp = Math.max(0, 1 - Math.max(0, Math.abs(d.high - 74) - 6) / 25);
+    const dry = 1 - d.rain / 100;
+    const storm = d.code >= 95 ? 0.5 : d.code >= 71 && d.code <= 77 ? 0.8 : 1;
+    return temp * 0.55 + dry * 0.45 * storm;
+  });
+  return Math.round((per.reduce((s, x) => s + x, 0) / per.length) * 100);
+}
+
+/** WMO weather code → short label. */
+export function weatherLabel(code: number) {
+  if (code === 0) return "Clear";
+  if (code <= 2) return "Partly cloudy";
+  if (code === 3) return "Cloudy";
+  if (code <= 48) return "Fog";
+  if (code <= 57) return "Drizzle";
+  if (code <= 67) return "Rain";
+  if (code <= 77) return "Snow";
+  if (code <= 82) return "Showers";
+  if (code <= 86) return "Snow showers";
+  return "Thunderstorms";
+}
+
+/** Fraction of the moon lit (0 = new, 1 = full) on a given date. */
+export function moonIllumination(date: Date) {
+  const synodic = 29.530588853;
+  const knownNew = Date.UTC(2000, 0, 6, 18, 14);
+  const age = ((((date.getTime() - knownNew) / 86400000) % synodic) + synodic) % synodic;
+  return (1 - Math.cos((2 * Math.PI * age) / synodic)) / 2;
+}

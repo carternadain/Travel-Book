@@ -10,7 +10,7 @@ export type MapStop = { lat: number; lng: number; label: string; n?: number | st
 function icon(stop: MapStop) {
   const color =
     stop.kind === "wonder" ? "var(--gold)" : stop.kind === "base" ? "var(--txt)" : stop.kind === "memory" ? "var(--accent)" : "var(--sea)";
-  const fg = stop.kind === "base" ? "var(--bg)" : "#fff";
+  const fg = stop.kind === "base" ? "var(--bg)" : "var(--on-mark)";
   const size = stop.kind === "wonder" ? 34 : 28;
   return L.divIcon({
     className: "",

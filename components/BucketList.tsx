@@ -37,7 +37,7 @@ export function BucketList() {
       <header className="relative grid items-center gap-8 md:grid-cols-[1fr_auto]">
         <div className="aurora pointer-events-none absolute -inset-x-20 -top-24 -z-10 h-80" aria-hidden />
         <div>
-          <Eyebrow>The bucket list</Eyebrow>
+          <Eyebrow jp="夢">The bucket list</Eyebrow>
           <h1 className="font-display mt-2 text-[clamp(44px,8vw,84px)] leading-[0.92]">
             {total} places to see <em className="text-accent-ink">before you die.</em>
           </h1>

@@ -3,8 +3,9 @@
 import { Flag } from "./Flag";
 import Link from "next/link";
 import { motion } from "motion/react";
-import { ArrowUpRight, Check } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import { WikiImage } from "./WikiImage";
+import { Tilt } from "./motion";
 import type { Destination, Place } from "@/lib/data";
 
 /** Tall cinematic photo card. */
@@ -30,12 +31,13 @@ export function PhotoCard({
   tall?: boolean;
 }) {
   return (
+    <Tilt className={className}>
     <motion.div
       whileHover="hover"
       whileTap={{ scale: 0.98 }}
       initial="rest"
       animate="rest"
-      className={`group relative ${className}`}
+      className="group relative rounded-[22px]"
     >
       <Link
         href={href}
@@ -52,8 +54,9 @@ export function PhotoCard({
         </motion.div>
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
         {seen && (
-          <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-semibold text-black backdrop-blur">
-            <Check size={12} strokeWidth={3} aria-hidden /> Seen
+          <span className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-white/90 py-1 pl-1 pr-2.5 text-[11px] font-semibold text-black backdrop-blur">
+            <span lang="ja" aria-hidden className="jp grid h-5 w-5 place-items-center rounded-full bg-accent text-[11px] font-bold tracking-normal text-on-accent">済</span>
+            Seen
           </span>
         )}
         <motion.span
@@ -70,6 +73,7 @@ export function PhotoCard({
         </div>
       </Link>
     </motion.div>
+    </Tilt>
   );
 }
 

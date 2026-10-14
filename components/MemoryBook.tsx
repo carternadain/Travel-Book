@@ -53,7 +53,7 @@ export function MemoryBook() {
     <div className="space-y-10">
       <header className="relative">
         <div className="aurora pointer-events-none absolute -inset-x-20 -top-24 h-72 -z-10" aria-hidden />
-        <Eyebrow>Memory book</Eyebrow>
+        <Eyebrow jp="思い出">Memory book</Eyebrow>
         <h1 className="font-display mt-2 text-[clamp(44px,8vw,84px)] leading-[0.92]">
           Everywhere <em className="text-accent-ink">you&apos;ve been.</em>
         </h1>

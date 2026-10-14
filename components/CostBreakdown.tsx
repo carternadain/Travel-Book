@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { ChevronDown, ExternalLink, Info } from "lucide-react";
-import type { CostLine } from "@/lib/planner";
+import { GAS, type CostLine } from "@/lib/planner";
 import type { Rates } from "@/lib/live";
 import { money } from "@/lib/format";
 import { AnimatedNumber, EASE } from "./ui";
@@ -167,8 +167,8 @@ export function CostBreakdown({
         <span>
           Ticket prices are real 2026 fares (tap a source to check). Exchange rates are{" "}
           {rates?.live ? `live (${rates.updated.replace(/ \+0000$/, "")})` : "approximate — offline"}. {drive
-            ? "Gas assumes 25 mpg at $3.60/gal."
-            : "Flights use a distance-based model; tap Google Flights below for today's actual fares."} Stay, food and transport are
+            ? `Gas is this week's AAA Arizona average ($${GAS.usd.toFixed(2)}/gal) at ${GAS.mpg} mpg, split between two people.`
+            : "Flights use a researched fare where we have one, otherwise a distance-based model. Tap Google Flights below for today's actual fares."} Stay, food and transport are
           averages from traveler budget guides.
         </span>
       </p>

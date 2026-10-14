@@ -30,7 +30,7 @@ export default function WondersPage() {
       <header className="relative grid items-center gap-8 md:grid-cols-[1fr_auto]">
         <div className="aurora pointer-events-none absolute -inset-x-20 -top-24 h-80 -z-10" aria-hidden />
         <div>
-          <Eyebrow>The New 7 Wonders of the World</Eyebrow>
+          <Eyebrow jp="七">The New 7 Wonders of the World</Eyebrow>
           <h1 className="font-display mt-2 text-[clamp(44px,8vw,84px)] leading-[0.92]">
             {count === 7 ? (
               <>You did it. <em className="text-accent-ink">All seven.</em></>

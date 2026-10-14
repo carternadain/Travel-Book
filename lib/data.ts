@@ -1,4 +1,5 @@
 import { MORE_DESTINATIONS } from "./more-destinations";
+import { WEEKENDS, type Vibe } from "./weekends";
 
 // Curated trip data. Live info (photos, summaries, weather, exchange rates) is
 // fetched at runtime from free public APIs — see lib/live.ts. Ticket prices below
@@ -63,6 +64,14 @@ export type Destination = {
   pitch: string;
   // Per person, USD/day, from traveler budget guides (estimates, not quotes).
   daily: Record<Style, { stay: number; food: number; local: number }>;
+  /** Weekend getaway from Phoenix: real road miles/hours, or a researched nonstop fare. */
+  weekend?: {
+    vibes: Vibe[];
+    miles?: number; // one-way road miles from PHX
+    hours?: number; // one-way drive hours from PHX
+    note?: string;
+    fly?: { fare: number; hours: number; source: string; note: string }; // round-trip economy from PHX
+  };
 };
 
 export const WONDER_IDS = [
@@ -929,7 +938,10 @@ export const DESTINATIONS: Destination[] = [
   },
 ];
 
-DESTINATIONS.push(...MORE_DESTINATIONS);
+DESTINATIONS.push(...MORE_DESTINATIONS, ...WEEKENDS);
+
+/** Week-long-or-more trips (everything except the weekend getaways). */
+export const BIG_TRIPS = DESTINATIONS.filter((d) => !d.weekend);
 
 export const ALL_PLACES: (Place & { destId: string })[] = DESTINATIONS.flatMap((d) =>
   d.places.map((p) => ({ ...p, destId: d.id })),

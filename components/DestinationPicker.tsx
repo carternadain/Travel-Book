@@ -4,7 +4,7 @@ import { Flag } from "./Flag";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "motion/react";
-import { Check, ChevronDown, Search, Sun, X } from "lucide-react";
+import { Check, ChevronDown, Search, Sun, Tent, X } from "lucide-react";
 import { CONTINENTS, DESTINATIONS, tripSeen, type Continent, type Destination } from "@/lib/data";
 import { WikiImage } from "./WikiImage";
 import { Chip, EASE } from "./ui";
@@ -71,7 +71,7 @@ function Sheet({
   onPick: (id: string) => void;
 }) {
   const [q, setQ] = useState("");
-  const [continent, setContinent] = useState<Continent | "all" | "now">("all");
+  const [continent, setContinent] = useState<Continent | "all" | "now" | "weekend">(value.weekend ? "weekend" : "all");
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -89,7 +89,9 @@ function Sheet({
     const needle = q.trim().toLowerCase();
     return DESTINATIONS.filter((d) => {
       if (continent === "now" && !d.bestMonths.includes(month)) return false;
-      if (continent !== "all" && continent !== "now" && d.continent !== continent) return false;
+      if (continent === "weekend") {
+        if (!d.weekend) return false;
+      } else if (continent !== "all" && continent !== "now" && (d.continent !== continent || d.weekend)) return false;
       if (!needle) return true;
       return [d.name, d.region, d.country, ...d.places.map((p) => p.name)].some((t) => t.toLowerCase().includes(needle));
     });
@@ -121,7 +123,7 @@ function Sheet({
               ref={inputRef}
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Search 40+ trips — Japan, waterfalls, Petra…"
+              placeholder="Search 60+ trips — Japan, waterfalls, Bisbee…"
               aria-label="Search destinations"
               className="min-h-11 flex-1 bg-transparent text-[16px] text-txt outline-none placeholder:text-faint focus-visible:outline-none"
             />
@@ -140,6 +142,9 @@ function Sheet({
             </Chip>
             <Chip on={continent === "now"} onClick={() => setContinent("now")} className="shrink-0">
               <Sun size={13} aria-hidden /> Great this month
+            </Chip>
+            <Chip on={continent === "weekend"} onClick={() => setContinent("weekend")} className="shrink-0">
+              <Tent size={13} aria-hidden /> Weekends
             </Chip>
             {CONTINENTS.map((c) => (
               <Chip key={c} on={continent === c} onClick={() => setContinent(c)} className="shrink-0">

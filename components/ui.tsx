@@ -46,9 +46,24 @@ export function AnimatedNumber({ value, format }: { value: number; format: (n: n
   return <motion.span className="tabular-nums">{text}</motion.span>;
 }
 
-export function Eyebrow({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+export function Eyebrow({ children, jp, className = "" }: { children: React.ReactNode; jp?: string; className?: string }) {
   return (
-    <p className={`text-xs font-semibold uppercase tracking-[0.18em] text-accent-ink ${className}`}>{children}</p>
+    <p className={`flex items-center gap-2.5 text-xs font-semibold uppercase tracking-[0.18em] text-accent-ink ${className}`}>
+      {jp ? (
+        <span lang="ja" aria-hidden className="jp text-[15px] font-bold normal-case tracking-[0.1em]">
+          {jp}
+        </span>
+      ) : null}
+      <motion.span
+        aria-hidden
+        className="h-px w-6 origin-left bg-current opacity-60"
+        initial={{ scaleX: 0 }}
+        whileInView={{ scaleX: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.9, ease: EASE, delay: 0.15 }}
+      />
+      <span>{children}</span>
+    </p>
   );
 }
 

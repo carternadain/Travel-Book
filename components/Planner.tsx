@@ -6,11 +6,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { AnimatePresence, motion, useScroll, useTransform } from "motion/react";
 import {
-  CalendarDays, CloudRain, Dices, ExternalLink, Heart, MapPin, Plane, Shuffle, Sparkles, Star, Sun, Thermometer,
+  CalendarDays, Check, CloudRain, Dices, ExternalLink, Heart, MapPin, Plane, Share2, Shuffle, Sparkles, Star, Sun, Thermometer,
 } from "lucide-react";
 import { DESTINATIONS, HOME_AIRPORTS, INTERESTS, type Destination, type Interest, type Style } from "@/lib/data";
 import { buildTrip, MONTHS, MONTHS_LONG, rng, suggestDestination, type Trip } from "@/lib/planner";
-import { useClimate, useRates, useWiki } from "@/lib/live";
+import { nextWeekend, useClimate, useRates, useWiki } from "@/lib/live";
 import { actions, selectMemories, selectSettings, uid, useStore } from "@/lib/store";
 import { money } from "@/lib/format";
 import { CostBreakdown } from "./CostBreakdown";
@@ -71,11 +71,13 @@ export function Planner() {
     if (want && DESTINATIONS.some((d) => d.id === want)) {
       setDestId(want);
       const d = DESTINATIONS.find((x) => x.id === want)!;
-      if (!d.bestMonths.includes(m)) setMonth(d.bestMonths[0]);
+      if (d.weekend) setMonth(Number(nextWeekend()[0].slice(5, 7)));
+      else if (!d.bestMonths.includes(m)) setMonth(d.bestMonths[0]);
       const pd = Number(params.get("days"));
       const pm = Number(params.get("month"));
       const ps = Number(params.get("seed"));
-      if (pd >= 4 && pd <= 21) setDays(pd);
+      if (d.weekend) setDays(3);
+      if (pd >= 2 && pd <= 21) setDays(pd);
       if (pm >= 1 && pm <= 12) setMonth(pm);
       if (ps) setSeed(ps);
     } else if (params.get("surprise")) {
@@ -103,7 +105,7 @@ export function Planner() {
     <div className="space-y-10">
       <header className="relative">
         <div className="aurora pointer-events-none absolute -inset-x-20 -top-24 h-72 -z-10" aria-hidden />
-        <Eyebrow>Trip planner</Eyebrow>
+        <Eyebrow jp="計画">Trip planner</Eyebrow>
         <h1 className="font-display mt-2 text-[clamp(40px,7vw,72px)] leading-[0.95]">
           Where should you <em className="text-accent-ink">go next?</em>
         </h1>
@@ -134,6 +136,9 @@ export function Planner() {
                 month={month}
                 seenIds={new Set(visitedPlaceIds)}
                 onChange={(id) => {
+                  const next = DESTINATIONS.find((x) => x.id === id)!;
+                  if (next.weekend && days > 4) setDays(3);
+                  if (!next.weekend && days < 5) setDays(9);
                   setDestId(id);
                   setSeed(1);
                 }}
@@ -165,7 +170,7 @@ export function Planner() {
             <Field label={`How long · ${days} days`}>
               <input
                 type="range"
-                min={4}
+                min={2}
                 max={21}
                 value={days}
                 onChange={(e) => setDays(+e.target.value)}
@@ -173,7 +178,7 @@ export function Planner() {
                 className="h-10 w-full cursor-pointer accent-[var(--accent)]"
               />
               <div className="flex justify-between text-[11px] text-faint tabular-nums">
-                <span>4</span>
+                <span>Weekend</span>
                 <span>1 week</span>
                 <span>2 weeks</span>
                 <span>21</span>
@@ -252,6 +257,7 @@ export function Planner() {
               rates={rates}
               saved={saved}
               onShuffle={() => setSeed(Math.floor(Math.random() * 1e9))}
+              shareUrl={`/plan?dest=${dest.id}&days=${days}&month=${month}&seed=${seed}`}
               onSurprise={() => surprise(false)}
               onSave={() => {
                 actions.saveTrip({
@@ -320,11 +326,13 @@ function TripResult({
   onShuffle,
   onSurprise,
   onSave,
+  shareUrl,
 }: {
   trip: Trip;
   currency: string;
   rates: ReturnType<typeof useRates>;
   saved: boolean;
+  shareUrl: string;
   onShuffle: () => void;
   onSurprise: () => void;
   onSave: () => void;
@@ -401,6 +409,7 @@ function TripResult({
             <Button variant="soft" onClick={onSurprise} className="!bg-white/15 !text-white backdrop-blur hover:!bg-white/25">
               <Sparkles size={16} aria-hidden /> Somewhere else
             </Button>
+            <ShareButton url={shareUrl} title={`${dest.name}: ${trip.days}-day trip`} />
           </div>
         </div>
       </div>
@@ -494,9 +503,9 @@ function TripResult({
               <span
                 className={`relative z-10 grid h-10 w-10 shrink-0 place-items-center rounded-full text-sm font-bold tabular-nums ring-4 ring-bg ${
                   d.kind === "wonder" || d.kind === "icon"
-                    ? "bg-gold text-black"
+                    ? "bg-gold text-on-mark"
                     : d.kind === "gem"
-                      ? "bg-sea text-black"
+                      ? "bg-sea text-on-mark"
                       : "bg-panel2 text-dim"
                 }`}
               >
@@ -540,6 +549,41 @@ function TripResult({
         {Math.round(trip.miles).toLocaleString()} mi each way · photos &amp; summaries from Wikipedia
       </p>
     </div>
+  );
+}
+
+function ShareButton({ url, title }: { url: string; title: string }) {
+  const [copied, setCopied] = useState(false);
+  const share = async () => {
+    const full = window.location.origin + (process.env.NEXT_PUBLIC_BASE_PATH || "") + url;
+    try {
+      if (navigator.share && window.matchMedia("(pointer: coarse)").matches) {
+        await navigator.share({ title, url: full });
+        return;
+      }
+      await navigator.clipboard.writeText(full);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    } catch {
+      /* user cancelled the share sheet */
+    }
+  };
+  return (
+    <Button variant="soft" onClick={share} className="!bg-white/15 !text-white backdrop-blur hover:!bg-white/25" aria-live="polite">
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.span
+          key={copied ? "y" : "n"}
+          initial={{ scale: 0.5, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.5, opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          className="inline-flex"
+        >
+          {copied ? <Check size={16} aria-hidden /> : <Share2 size={16} aria-hidden />}
+        </motion.span>
+      </AnimatePresence>
+      {copied ? "Link copied" : "Share"}
+    </Button>
   );
 }
 

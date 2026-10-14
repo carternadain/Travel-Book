@@ -1,4 +1,4 @@
-import { DESTINATIONS, HOME_AIRPORTS, type Destination, type Interest, type Place, type Style } from "./data";
+import { BIG_TRIPS, HOME_AIRPORTS, type Destination, type Interest, type Place, type Style } from "./data";
 import { toUSD, type Rates } from "./live";
 
 export type DayPlan = {
@@ -67,9 +67,23 @@ export function miles(aLat: number, aLng: number, bLat: number, bLng: number) {
 
 const iso = (d: Date) => d.toISOString().slice(0, 10);
 
-export function tripDates(month: number, days: number) {
+export function tripDates(month: number, days: number, weekend = false) {
   const now = new Date();
   let year = now.getFullYear();
+  if (weekend) {
+    // First Friday (Saturday for a 2-day trip) in that month at least 2 days away.
+    const dow = days <= 2 ? 6 : 5;
+    const soonest = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate() + 2));
+    for (let y = year; y <= year + 1; y++) {
+      for (let day = 1; day <= 31; day++) {
+        const d = new Date(Date.UTC(y, month - 1, day));
+        if (d.getUTCMonth() !== month - 1) break;
+        if (d.getUTCDay() === dow && d >= soonest) {
+          return { start: iso(d), end: iso(new Date(d.getTime() + (days - 1) * 86400000)) };
+        }
+      }
+    }
+  }
   // Need at least ~3 weeks of lead time to plan.
   if (month - 1 < now.getMonth() || (month - 1 === now.getMonth() && now.getDate() > 1)) year += 1;
   const start = new Date(Date.UTC(year, month - 1, 10));
@@ -90,7 +104,64 @@ function dayKind(places: Place[]): DayPlan["kind"] {
 /** Under this many miles from home, we price it as a road trip instead of flying. */
 export const DRIVE_MILES = 400;
 
+/** A Fri-Sun shape: a stop on the way in, the headline day(s), one more stop on the way out. */
+function buildWeekend(dest: Destination, days: number, interests: Interest[], rand: () => number, drive: boolean): DayPlan[] {
+  const ranked = dest.places
+    .slice(1)
+    .map((p) => ({ p, s: score(p, interests) + rand() * 0.9 }))
+    .sort((a, b) => b.s - a.s)
+    .map((x) => x.p);
+  const head = dest.places[0];
+  const take = (half = true) => {
+    const i = ranked.findIndex((p) => !half || p.days < 1);
+    return i >= 0 ? ranked.splice(i, 1)[0] : undefined;
+  };
+  const plan: DayPlan[] = [];
+  const firstStop = days > 2 ? take() : undefined;
+  plan.push({
+    day: 1,
+    kind: "arrive",
+    title: `${drive ? "Drive" : "Fly"} to ${dest.base.name}${firstStop ? ` · ${firstStop.name}` : ""}`,
+    note: drive
+      ? "Leave after lunch on Friday to beat the traffic. Get there for golden hour."
+      : "Take the earliest flight you can stand, pick up the car, and you're there by lunch.",
+    places: firstStop ? [firstStop] : [],
+  });
+  const middle = Math.max(1, days - 1);
+  let first = true;
+  while (plan.length < middle) {
+    const lead = first ? head : take(false);
+    first = false;
+    if (!lead) {
+      plan.push({
+        day: 0,
+        kind: "free",
+        title: `Slow day in ${dest.base.name}`,
+        note: "Sleep in, find the best breakfast in town, and ask a local for their favourite spot.",
+        places: [],
+      });
+      continue;
+    }
+    const day: Place[] = [lead];
+    if (lead.days < 1) {
+      const pair = take();
+      if (pair) day.push(pair);
+    }
+    plan.push({ day: 0, kind: dayKind(day), title: day.map((p) => p.name).join(" + "), note: lead.tip ?? lead.blurb, places: day });
+  }
+  const last = take() ?? take(false);
+  plan.push({
+    day: 0,
+    kind: "depart",
+    title: last ? `${last.name}, then home` : drive ? "Drive home" : "Fly home",
+    note: drive ? "One more stop on the way out, and home before Sunday night." : "Morning stop, then back to the airport. Home for dinner.",
+    places: last ? [last] : [],
+  });
+  return plan.map((d, i) => ({ ...d, day: i + 1 }));
+}
+
 function buildPlan(dest: Destination, days: number, interests: Interest[], rand: () => number, drive = false): DayPlan[] {
+  if (dest.weekend) return buildWeekend(dest, days, interests, rand, drive);
   const plan: DayPlan[] = [];
   // The headline sight is always first; other bucket-list icons come next.
   const wonder = dest.places[0];
@@ -179,6 +250,19 @@ function buildPlan(dest: Destination, days: number, interests: Interest[], rand:
 
 const GEM_FEE: Record<Style, number> = { budget: 6, mid: 18, comfort: 45 };
 const FLIGHT_STYLE: Record<Style, number> = { budget: 0.88, mid: 1, comfort: 1.7 };
+// A researched fare is a "book ahead" price; pad it for normal booking.
+const FARE_STYLE: Record<Style, number> = { budget: 1, mid: 1.15, comfort: 1.8 };
+
+/** Arizona regular unleaded, AAA average via azfamily.com, early October 2026. */
+export const GAS = {
+  usd: 4.75,
+  mpg: 27,
+  riders: 2,
+  source: "https://www.azfamily.com/2026/10/04/gas-prices-dipped-slightly-arizona-last-week/",
+};
+
+/** Cost of driving `roundTripMiles`, per person (two people sharing one car). */
+export const gasCost = (roundTripMiles: number) => ((roundTripMiles / GAS.mpg) * GAS.usd) / GAS.riders;
 
 export function buildTrip(opts: {
   dest: Destination;
@@ -193,18 +277,29 @@ export function buildTrip(opts: {
   const { dest, days, style, month, interests, seed, rates } = opts;
   const home = HOME_AIRPORTS.find((a) => a.code === opts.home) ?? HOME_AIRPORTS[0];
   const rand = rng(seed);
+  const wk = dest.weekend;
+  const fromPHX = home.code === "PHX";
   const mi = miles(home.lat, home.lng, dest.airportLat, dest.airportLng);
-  const drive = mi < DRIVE_MILES;
+  const baseMi = miles(home.lat, home.lng, dest.base.lat, dest.base.lng);
+  // Fly-in weekends always fly; otherwise drive anything under DRIVE_MILES from home.
+  const drive = wk?.fly ? false : wk && fromPHX ? true : baseMi < DRIVE_MILES;
   const plan = buildPlan(dest, days, interests, rand, drive);
-  const { start, end } = tripDates(month, days);
+  const { start, end } = tripDates(month, days, !!wk);
   const d = dest.daily[style];
   const nights = days - 1;
 
-  // Flights: distance-based model calibrated on typical economy round trips.
-  // Road trips: gas for the round trip (roads ~1.3× straight-line, 25 mpg, $3.60/gal).
-  const roadMi = miles(home.lat, home.lng, dest.base.lat, dest.base.lng) * 1.3;
+  // Flights: a researched nonstop fare when we have one, else a distance-based
+  // model calibrated on typical economy round trips.
+  // Road trips: real road miles from Phoenix when known (else ~1.3x straight-line)
+  // at this week's Arizona gas price, split between two people in the car.
+  const roadMi = wk?.miles && fromPHX ? wk.miles : baseMi * 1.3;
   const peak = [6, 7, 8, 12].includes(month) ? 1.15 : 1;
-  const flight = drive ? ((roadMi * 2) / 25) * 3.6 : (150 + 0.14 * mi) * FLIGHT_STYLE[style] * peak;
+  const knownFare = wk?.fly && fromPHX ? wk.fly : undefined;
+  const flight = drive
+    ? gasCost(roadMi * 2)
+    : knownFare
+      ? knownFare.fare * FARE_STYLE[style] * peak
+      : (150 + 0.14 * mi) * FLIGHT_STYLE[style] * peak;
 
   const visited = plan.flatMap((p) => p.places);
   type Item = NonNullable<CostLine["items"]>[number];
@@ -220,7 +315,9 @@ export function buildTrip(opts: {
           source: t.source,
           note: t.note,
         }))
-      : [{ label: `${p.name} (fees, guide or transport)`, usd: GEM_FEE[style], note: "Estimate" }],
+      : dest.weekend
+        ? [{ label: p.name, usd: 0, note: "Free" }]
+        : [{ label: `${p.name} (fees, guide or transport)`, usd: GEM_FEE[style], note: "Estimate" }],
   );
   const tickets = ticketItems.reduce((s, t) => s + t.usd, 0);
 
@@ -232,8 +329,18 @@ export function buildTrip(opts: {
       low: flight * (drive ? 0.85 : 0.75),
       high: flight * (drive ? 1.25 : 1.35),
       detail: drive
-        ? `Drive from ${home.city}, about ${Math.round(roadMi).toLocaleString()} mi each way`
-        : `${home.code} → ${dest.airport} round trip, ${Math.round(mi).toLocaleString()} mi each way${style === "comfort" ? ", premium economy" : ""}`,
+        ? `${Math.round(roadMi).toLocaleString()} mi each way${wk?.hours && fromPHX ? ` (${fmtHours(wk.hours)})` : ""} · $${GAS.usd.toFixed(2)}/gal, ${GAS.mpg} mpg, split 2 ways`
+        : `${home.code} → ${dest.airport} round trip${knownFare ? `, nonstop from $${knownFare.fare}` : `, ${Math.round(mi).toLocaleString()} mi each way`}${style === "comfort" ? ", premium economy" : ""}`,
+      items: drive
+        ? [{
+            label: `${Math.round(roadMi * 2).toLocaleString()} mi ÷ ${GAS.mpg} mpg × $${GAS.usd.toFixed(2)} ÷ ${GAS.riders} people`,
+            usd: flight,
+            note: "AAA Arizona average this week",
+            source: GAS.source,
+          }]
+        : knownFare
+          ? [{ label: `Researched fare ${home.code} ⇄ ${dest.airport}`, usd: knownFare.fare, note: knownFare.note, source: knownFare.source }]
+          : undefined,
     },
     {
       key: "stay",
@@ -241,7 +348,9 @@ export function buildTrip(opts: {
       usd: d.stay * nights,
       low: d.stay * nights * 0.8,
       high: d.stay * nights * 1.25,
-      detail: `${nights} nights × $${d.stay}/night (${style === "budget" ? "hostel / guesthouse" : style === "mid" ? "3★ hotel" : "4–5★ hotel"})`,
+      detail: wk
+        ? `${nights} night${nights === 1 ? "" : "s"} × $${d.stay * 2} room incl. tax, split 2 ways (${style === "budget" ? "motel / campsite" : style === "mid" ? "inn or 3★ hotel" : "boutique hotel"})`
+        : `${nights} nights × $${d.stay}/night (${style === "budget" ? "hostel / guesthouse" : style === "mid" ? "3★ hotel" : "4–5★ hotel"})`,
     },
     {
       key: "food",
@@ -257,7 +366,11 @@ export function buildTrip(opts: {
       usd: d.local * days,
       low: d.local * days * 0.8,
       high: d.local * days * 1.3,
-      detail: `${days} days × $${d.local}/day (transit, taxis, day-trip transport)`,
+      detail: wk?.fly
+        ? `${days} days × $${d.local}/day (rental car split 2 ways + gas)`
+        : wk
+          ? `${days} days × $${d.local}/day (local driving, parking${dest.countryCode === "MX" ? ", Mexican car insurance" : ""})`
+          : `${days} days × $${d.local}/day (transit, taxis, day-trip transport)`,
     },
     {
       key: "tickets",
@@ -265,7 +378,7 @@ export function buildTrip(opts: {
       usd: tickets,
       low: tickets * 0.95,
       high: tickets * 1.15,
-      detail: `${ticketItems.length} entries, converted at ${rates?.live ? "today's" : "approximate"} exchange rates`,
+      detail: `${ticketItems.filter((t) => t.usd > 0).length} paid, ${ticketItems.filter((t) => t.usd === 0).length} free · ${rates?.live ? "today's" : "approximate"} exchange rates`,
       items: ticketItems,
     },
   ];
@@ -319,6 +432,12 @@ export function buildTrip(opts: {
 }
 
 /** Pick a destination that fits — favours wonders you haven't seen and good-weather months. */
+export const fmtHours = (h: number) => {
+  const hh = Math.floor(h);
+  const mm = Math.round((h - hh) * 60);
+  return mm ? `${hh}h ${mm}m` : `${hh}h`;
+};
+
 export function suggestDestination(opts: {
   month: number;
   interests: Interest[];
@@ -327,7 +446,7 @@ export function suggestDestination(opts: {
   wondersOnly?: boolean;
   exclude?: string;
 }): Destination {
-  const pool = DESTINATIONS.filter((d) => d.id !== opts.exclude && (!opts.wondersOnly || d.wonder));
+  const pool = BIG_TRIPS.filter((d) => d.id !== opts.exclude && (!opts.wondersOnly || d.wonder));
   const scored = pool.map((d) => {
     let s = opts.rand() * 3;
     const icons = d.places.filter((p) => p.kind !== "gem");
