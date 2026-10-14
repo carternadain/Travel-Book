@@ -1,5 +1,6 @@
 "use client";
 
+import { Flag } from "./Flag";
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
@@ -11,7 +12,7 @@ import { DESTINATIONS, HOME_AIRPORTS, INTERESTS, type Destination, type Interest
 import { buildTrip, MONTHS, MONTHS_LONG, rng, suggestDestination, type Trip } from "@/lib/planner";
 import { useClimate, useRates, useWiki } from "@/lib/live";
 import { actions, selectMemories, selectSettings, uid, useStore } from "@/lib/store";
-import { flag, money } from "@/lib/format";
+import { money } from "@/lib/format";
 import { CostBreakdown } from "./CostBreakdown";
 import { DestinationPicker } from "./DestinationPicker";
 import { PackingList } from "./PackingList";
@@ -141,7 +142,7 @@ export function Planner() {
           </Field>
 
           <Field label="When">
-            <div className="no-scrollbar -mx-4 flex gap-1.5 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:px-6">
+            <div className="no-scrollbar -mx-4 flex gap-1.5 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
               {MONTHS.map((m, i) => {
                 const best = dest.bestMonths.includes(i + 1);
                 return (
@@ -360,7 +361,7 @@ function TripResult({
             className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] font-medium text-white/85"
           >
             <span>
-              {flag(dest.countryCode)} {dest.country}
+              <Flag cc={dest.countryCode} /> {dest.country}
             </span>
             <span className="inline-flex items-center gap-1">
               <CalendarDays size={14} aria-hidden /> {MONTHS_LONG[trip.month - 1]} · {trip.days} days

@@ -1,11 +1,11 @@
 "use client";
 
+import { Flag } from "./Flag";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "motion/react";
 import { Check, ChevronDown, Search, Sun, X } from "lucide-react";
 import { CONTINENTS, DESTINATIONS, tripSeen, type Continent, type Destination } from "@/lib/data";
-import { flag } from "@/lib/format";
 import { WikiImage } from "./WikiImage";
 import { Chip, EASE } from "./ui";
 
@@ -31,7 +31,7 @@ export function DestinationPicker({
         aria-haspopup="dialog"
         className="inline-flex min-h-10 max-w-full items-center gap-2 rounded-full border border-txt bg-txt px-4 text-sm font-semibold text-bg"
       >
-        <span aria-hidden>{flag(value.countryCode)}</span>
+        <span aria-hidden><Flag cc={value.countryCode} /></span>
         <span className="truncate">{value.name}</span>
         <ChevronDown size={16} aria-hidden className="shrink-0" />
       </motion.button>
@@ -195,7 +195,7 @@ function Sheet({
                       </div>
                       <span className="absolute inset-x-0 bottom-0 p-2.5 text-white">
                         <span className="block text-[11px] text-white/80">
-                          {flag(d.countryCode)} {d.country}
+                          <Flag cc={d.countryCode} /> {d.country}
                         </span>
                         <span className="font-display block text-[19px] leading-tight">{d.name}</span>
                       </span>

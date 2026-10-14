@@ -1,5 +1,6 @@
 "use client";
 
+import { Flag } from "@/components/Flag";
 import Link from "next/link";
 import { motion } from "motion/react";
 import { ArrowRight, Check, Gem, Plus, Ticket } from "lucide-react";
@@ -7,7 +8,7 @@ import { WikiImage } from "@/components/WikiImage";
 import { EASE, Eyebrow, Reveal, Stamp } from "@/components/ui";
 import { WONDERS } from "@/lib/data";
 import { toUSD, useRates } from "@/lib/live";
-import { flag, money } from "@/lib/format";
+import { money } from "@/lib/format";
 import { MONTHS } from "@/lib/planner";
 import { selectMemories, selectSettings, useStore } from "@/lib/store";
 import { toggleVisited } from "@/lib/visited";
@@ -106,7 +107,7 @@ export default function WondersPage() {
                   {String(i + 1).padStart(2, "0")}
                 </p>
                 <p className="mt-3 text-sm font-medium text-dim">
-                  {flag(w.dest.countryCode)} {w.dest.country}
+                  <Flag cc={w.dest.countryCode} /> {w.dest.country}
                 </p>
                 <h2 className="font-display mt-1 text-5xl leading-[0.95]">{w.name}</h2>
                 <p className="mt-3 max-w-md text-[16px] leading-relaxed text-dim">{w.blurb}</p>

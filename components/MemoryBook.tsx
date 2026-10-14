@@ -1,5 +1,6 @@
 "use client";
 
+import { Flag } from "./Flag";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -12,7 +13,7 @@ import { DESTINATIONS } from "@/lib/data";
 import { addPhoto, deletePhoto, usePhotoURL } from "@/lib/photos";
 import { actions, selectMemories, selectSettings, selectTrips, uid, useStore, type Memory } from "@/lib/store";
 import { useRates } from "@/lib/live";
-import { flag, money } from "@/lib/format";
+import { money } from "@/lib/format";
 import { MONTHS_LONG, tripDates } from "@/lib/planner";
 import { WikiImage } from "./WikiImage";
 import { AnimatedNumber, Button, EASE, Eyebrow, Reveal, rise, stagger } from "./ui";
@@ -246,7 +247,7 @@ function Polaroid({ m, tilt, onOpen }: { m: Memory; tilt: number; onOpen: () => 
       </div>
       <p className="font-display mt-2.5 truncate text-[22px] leading-none text-neutral-900">{m.title}</p>
       <p className="mt-1 truncate text-[11px] text-neutral-600">
-        {flag(m.countryCode)} {m.country}
+        <Flag cc={m.countryCode} /> {m.country}
         {m.dateFrom ? ` · ${new Date(m.dateFrom + "T00:00").toLocaleDateString(undefined, { month: "short", year: "numeric" })}` : ""}
       </p>
     </motion.button>
@@ -332,7 +333,7 @@ function MemorySheet({ m, onClose }: { m: Memory; onClose: () => void }) {
           </button>
           <div className="absolute inset-x-0 bottom-0 p-5 text-white">
             <p className="text-sm text-white/85">
-              {flag(draft.countryCode)} {draft.country}
+              <Flag cc={draft.countryCode} /> {draft.country}
             </p>
             <input
               value={draft.title}
@@ -721,7 +722,7 @@ function AddPlace({ onClose, onAdded }: { onClose: () => void; onAdded: (id: str
                 className="flex min-h-14 w-full items-center gap-3 rounded-xl px-3 text-left transition-colors hover:bg-panel2"
               >
                 <span className="text-2xl" aria-hidden>
-                  {flag(h.country_code)}
+                  <Flag cc={h.country_code} />
                 </span>
                 <span className="min-w-0">
                   <span className="block truncate font-semibold text-txt">{h.name}</span>
@@ -776,7 +777,7 @@ function Wishlist() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/85 to-transparent" />
                 <div className="absolute inset-x-0 bottom-0 p-4 text-white">
                   <p className="text-xs text-white/80">
-                    {flag(d.countryCode)} {MONTHS_LONG[t.month - 1]} · {t.days} days
+                    <Flag cc={d.countryCode} /> {MONTHS_LONG[t.month - 1]} · {t.days} days
                   </p>
                   <p className="font-display text-3xl leading-none">{d.name}</p>
                   <p className="mt-1 text-sm font-semibold tabular-nums">~{money(t.totalUSD, settings.currency, rates)}</p>

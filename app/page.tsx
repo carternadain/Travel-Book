@@ -10,6 +10,7 @@ import { AnimatedNumber, EASE, Eyebrow, Reveal, rise, stagger } from "@/componen
 import { BUCKET, DESTINATIONS, HOME_AIRPORTS, WONDERS, tripSeen } from "@/lib/data";
 import { DRIVE_MILES, MONTHS, MONTHS_LONG, miles } from "@/lib/planner";
 import { Chip } from "@/components/ui";
+import { Rail } from "@/components/Rail";
 import { selectMemories, selectSettings, useStore } from "@/lib/store";
 
 const GOLD: [number, number, number] = [0.95, 0.68, 0.2];
@@ -145,19 +146,19 @@ export default function Discover() {
             Track your progress <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
           </Link>
         </Reveal>
-        <motion.div
+        <div className="mt-5">
+          <Rail label="The New 7 Wonders"
           variants={stagger}
           initial="hidden"
           whileInView="show"
-          viewport={{ once: true, margin: "-40px" }}
-          className="no-scrollbar -mx-4 mt-6 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-4 sm:-mx-6 sm:px-6"
-        >
+          viewport={{ once: true, margin: "-40px" }}>
           {WONDERS.map((w) => (
             <motion.div key={w.id} variants={rise} className="w-[72%] shrink-0 snap-start sm:w-[300px]">
               <DestinationCard d={w.dest} seen={seenIds.has(w.id)} />
             </motion.div>
           ))}
-        </motion.div>
+          </Rail>
+        </div>
       </section>
 
       {/* Where to go this month */}
@@ -176,26 +177,26 @@ export default function Discover() {
             See all {BUCKET.length} <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
           </Link>
         </Reveal>
-        <div className="no-scrollbar -mx-4 mt-5 flex gap-1.5 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:px-6" role="group" aria-label="Month">
+        <div className="no-scrollbar -mx-4 mt-5 flex gap-1.5 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0" role="group" aria-label="Month">
           {MONTHS.map((m, i) => (
             <Chip key={m} on={month === i + 1} onClick={() => setMonth(i + 1)} className="shrink-0 !px-3.5">
               {m}
             </Chip>
           ))}
         </div>
-        <motion.div
+        <div className="mt-5">
+          <Rail label="Trips in season"
           key={month ?? 0}
           variants={stagger}
           initial="hidden"
-          animate="show"
-          className="no-scrollbar -mx-4 mt-5 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-4 sm:-mx-6 sm:px-6"
-        >
+          animate="show">
           {inSeason.map((d) => (
             <motion.div key={d.id} variants={rise} className="w-[64%] shrink-0 snap-start sm:w-[260px]">
               <DestinationCard d={d} seen={tripSeen(d, seenIds)} />
             </motion.div>
           ))}
-        </motion.div>
+          </Rail>
+        </div>
         <p className="text-xs text-dim">
           {inSeason.length} trips are in their best season{month ? ` in ${MONTHS_LONG[month - 1]}` : ""}: good weather and
           fewer crowds.

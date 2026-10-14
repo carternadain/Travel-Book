@@ -1,11 +1,11 @@
 "use client";
 
+import { Flag } from "./Flag";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { ArrowRight, Check, Plus, Sparkles } from "lucide-react";
 import { BUCKET, CONTINENTS, type Continent } from "@/lib/data";
-import { flag } from "@/lib/format";
 import { selectMemories, useStore } from "@/lib/store";
 import { toggleVisited } from "@/lib/visited";
 import { WikiImage } from "./WikiImage";
@@ -110,7 +110,7 @@ export function BucketList() {
         </div>
       </header>
 
-      <div className="no-scrollbar -mx-4 flex gap-1.5 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:px-6" role="group" aria-label="Filter">
+      <div className="no-scrollbar -mx-4 flex gap-1.5 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0" role="group" aria-label="Filter">
         <Chip on={filter === "all"} onClick={() => setFilter("all")} className="shrink-0">
           All {total}
         </Chip>
@@ -175,7 +175,7 @@ export function BucketList() {
                     )}
                     <span className="absolute inset-x-0 bottom-0 p-3 pb-14 text-white">
                       <span className="block text-[11px] text-white/80">
-                        {flag(b.dest.countryCode)} {b.dest.country}
+                        <Flag cc={b.dest.countryCode} /> {b.dest.country}
                       </span>
                       <span className="font-display mt-0.5 block text-[22px] leading-[1.05]">{b.name}</span>
                     </span>

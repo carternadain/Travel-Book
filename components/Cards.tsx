@@ -1,10 +1,10 @@
 "use client";
 
+import { Flag } from "./Flag";
 import Link from "next/link";
 import { motion } from "motion/react";
 import { ArrowUpRight, Check } from "lucide-react";
 import { WikiImage } from "./WikiImage";
-import { flag } from "@/lib/format";
 import type { Destination, Place } from "@/lib/data";
 
 /** Tall cinematic photo card. */
@@ -23,7 +23,7 @@ export function PhotoCard({
   wiki: string;
   photo?: string;
   title: string;
-  kicker?: string;
+  kicker?: React.ReactNode;
   sub?: string;
   seen?: boolean;
   className?: string;
@@ -81,7 +81,7 @@ export function DestinationCard({ d, seen }: { d: Destination; seen?: boolean })
       wiki={hero.wiki}
       photo={hero.photo}
       title={d.name}
-      kicker={`${flag(d.countryCode)}  ${d.country}`}
+      kicker={<><Flag cc={d.countryCode} /> {d.country}</>}
       sub={d.pitch}
       seen={seen}
     />
@@ -95,7 +95,7 @@ export function GemCard({ p, d }: { p: Place; d: Destination }) {
       wiki={p.wiki}
       photo={p.photo}
       title={p.name}
-      kicker={`${flag(d.countryCode)}  ${d.country}`}
+      kicker={<><Flag cc={d.countryCode} /> {d.country}</>}
       sub={p.blurb}
       tall={false}
     />
